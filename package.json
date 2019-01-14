@@ -1,0 +1,32 @@
+{
+  "name": "n-quads-parser",
+  "version": "1.0.0",
+  "description": "Simple, fast, n-quads and n-triples parser",
+  "main": "src/index.js",
+  "module": "src/index.js",
+  "sideEffects": false,
+  "scripts": {
+    "test": "echo \"Error: no test specified\" && exit 1"
+  },
+  "repository": {
+    "type": "git",
+    "url": "git+ssh://git@github.com/ontola/n-quads-parser.git"
+  },
+  "keywords": [
+    "rdflib",
+    "nquads",
+    "ntriples",
+    "nq",
+    "parser",
+    "rdfjs",
+    "rdf",
+    "linked",
+    "data"
+  ],
+  "author": "Thom van Kalkeren <thom@argu.co>",
+  "license": "MIT",
+  "bugs": {
+    "url": "https://github.com/ontola/n-quads-parser/issues"
+  },
+  "homepage": "https://github.com/ontola/n-quads-parser#readme"
+}
