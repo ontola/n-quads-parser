@@ -8,7 +8,7 @@ This is a basic, but fast pure-js n-quads parser. It has no dependencies to node
 
 `npm i n-quads-parser`
 
-# Usage
+## Usage
 This was written as a faster n-quads parser for [link-lib](https://github.com/fletcher91/link-lib) and designed to work with [rdflib.js](http://github.com/linkeddata/rdflib.js).
 
 If you're looking for a way to build linked-data enabled RDF applications fast, check out [link-redux](https://github.com/fletcher91/link-redux).
@@ -30,3 +30,8 @@ fetch(url)
 
 // The statements should be loaded into the store.
 ```
+
+## TODO:
+
+* Implement the [whatwg streams](https://streams.spec.whatwg.org/) interface
+* Add the spec test suite
