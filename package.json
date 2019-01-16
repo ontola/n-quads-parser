@@ -4,6 +4,7 @@
   "description": "Simple, fast, n-quads and n-triples parser",
   "main": "dist/n-quads-parser.umd.js",
   "module": "dist/n-quads-parser.es6.js",
+  "types": "dist/index.d.ts",
   "sideEffects": false,
   "scripts": {
     "build": "rollup -c",
