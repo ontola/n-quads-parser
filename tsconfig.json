@@ -1,0 +1,14 @@
+{
+  "compilerOptions": {
+    "moduleResolution": "node",
+    "declaration": false,
+    "forceConsistentCasingInFileNames": true,
+    "module": "es6",
+    "lib": ["esnext"],
+    "noImplicitReturns": true,
+    "noUnusedLocals": true,
+    "noUnusedParameters": true,
+    "strict": true,
+    "target": "es6"
+  }
+}

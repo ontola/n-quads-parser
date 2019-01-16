@@ -2,10 +2,11 @@
   "name": "n-quads-parser",
   "version": "1.0.0",
   "description": "Simple, fast, n-quads and n-triples parser",
-  "main": "src/index.js",
-  "module": "src/index.js",
+  "main": "dist/n-quads-parser.umd.js",
+  "module": "dist/n-quads-parser.es6.js",
   "sideEffects": false,
   "scripts": {
+    "build": "rollup -c",
     "test": "echo \"Error: no test specified\" && exit 1"
   },
   "repository": {
@@ -28,5 +29,12 @@
   "bugs": {
     "url": "https://github.com/ontola/n-quads-parser/issues"
   },
-  "homepage": "https://github.com/ontola/n-quads-parser#readme"
+  "homepage": "https://github.com/ontola/n-quads-parser#readme",
+  "devDependencies": {
+    "rdflib": "npm:link-rdflib@0.19.1-20190116T105410",
+    "rollup": "^1.1.0",
+    "rollup-plugin-commonjs": "^9.2.0",
+    "rollup-plugin-typescript2": "^0.19.0",
+    "typescript": "^3.2.2"
+  }
 }
