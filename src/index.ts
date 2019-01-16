@@ -2,7 +2,9 @@ import { IndexedFormula, NamedNode } from 'rdflib';
 
 import { Quadruple } from "./types";
 
-export default class NQuadsParser {
+export { Quadruple } from './types';
+
+export class NQuadsParser {
   public store: IndexedFormula;
 
   public nnClosingTagError: Error;
