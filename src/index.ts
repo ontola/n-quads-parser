@@ -67,7 +67,7 @@ export class NQuadsParser {
     this.addArr(this.parseString(str));
   }
 
-  parseString(str: string): Quadruple[] {
+  parseString(str: string): Array<Quadruple|void> {
     if (!str || str.length === 0) {
       return [];
     }
@@ -84,7 +84,6 @@ export class NQuadsParser {
       try {
         cleaned = rawStatements[i].trim();
         if (cleaned.length === 0) {
-          quads.length--;
           continue
         }
 
@@ -96,7 +95,6 @@ export class NQuadsParser {
          */
         switch (cleaned.charAt(0)) {
           case '#':
-            quads.length--;
             continue;
 
           case this.nnOpeningToken:
@@ -209,7 +207,7 @@ export class NQuadsParser {
     return quads;
   }
 
-  addArr(quads: Quadruple[]): void {
+  addArr(quads: Array<Quadruple|void>): void {
     let q;
     for (let i = 0, len = quads.length; i < len; i++) {
       q = quads[i];
