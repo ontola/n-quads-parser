@@ -25,6 +25,8 @@ export class NQuadsParser {
   public bnClosingTokenOffset: number;
   public ltOpeningToken: string;
   public ltOpeningTokenOffset: number;
+  public ltQuoteReplaceValue: string;
+  public ltQuoteUnescape: RegExp;
   public ltWhitespaceReplace: RegExp;
   public ltNewline: string;
   public lgOpeningToken: string;
@@ -54,6 +56,8 @@ export class NQuadsParser {
     this.bnClosingTokenOffset = this.bnClosingToken.length;
     this.ltOpeningToken = '"';
     this.ltOpeningTokenOffset = this.ltOpeningToken.length;
+    this.ltQuoteUnescape = /\\"/g;
+    this.ltQuoteReplaceValue = '"';
     this.ltWhitespaceReplace = /\\r\\n/g;
     this.ltNewline = '\n';
     this.lgOpeningToken = '@';
@@ -181,7 +185,7 @@ export class NQuadsParser {
               }
             }
             object = this.store.literal(
-              object,
+              object.replace(this.ltQuoteUnescape, this.ltQuoteReplaceValue),
               lang,
               datatype
             );
