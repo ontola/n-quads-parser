@@ -4,6 +4,11 @@ import { Quadruple } from "./types";
 
 export { Quadruple } from './types';
 
+export const SIndex = 0;
+export const PIndex = 1;
+export const OIndex = 2;
+export const GIndex = 3;
+
 export class NQuadsParser {
   public store: IndexedFormula;
 
@@ -177,7 +182,10 @@ export class NQuadsParser {
             } else {
               dtOrLgBoundary = cleaned.indexOf(this.lgOpeningToken, leftBoundary);
               if (dtOrLgBoundary >= 0) {
-                lang = cleaned.substring(leftBoundary + this.lgOpeningTokenOffset, cleaned.lastIndexOf(this.lgClosingToken));
+                lang = cleaned.substring(
+                    dtOrLgBoundary + this.lgOpeningTokenOffset,
+                    cleaned.indexOf(this.lgClosingToken, dtOrLgBoundary + this.lgOpeningTokenOffset)
+                );
                 datatype = this.xsdLangString;
               } else {
                 // Implicit literals are strings
@@ -216,7 +224,7 @@ export class NQuadsParser {
     for (let i = 0, len = quads.length; i < len; i++) {
       q = quads[i];
       if (q) {
-        this.store.add(q[0], q[1], q[2], q[3]);
+        this.store.add(q[SIndex], q[PIndex], q[OIndex], q[GIndex]);
       }
     }
   }
