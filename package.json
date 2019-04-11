@@ -8,7 +8,7 @@
   "sideEffects": false,
   "scripts": {
     "build": "rollup -c && rollup -c --config rollup.config.umd.js",
-    "test": "echo \"Error: no test specified\" && exit 1"
+    "test": "jest"
   },
   "repository": {
     "type": "git",
@@ -36,10 +36,23 @@
     "package.json"
   ],
   "devDependencies": {
-    "rdflib": "npm:link-rdflib@0.19.1-20190116T105410",
+    "@types/jest": "^24.0.11",
+    "jest": "^24.7.1",
+    "rdflib": "npm:link-rdflib@0.19.1-20190124T144209",
     "rollup": "^1.9.0",
     "rollup-plugin-commonjs": "^9.3.4",
     "rollup-plugin-typescript2": "^0.20.1",
+    "ts-jest": "^24.0.2",
     "typescript": "^3.4.1"
+  },
+  "jest": {
+    "preset": "ts-jest",
+    "moduleFileExtensions": [
+      "js",
+      "ts"
+    ],
+    "transform": {
+      "\\.ts$": "<rootDir>/node_modules/ts-jest/preprocessor.js"
+    }
   }
 }
