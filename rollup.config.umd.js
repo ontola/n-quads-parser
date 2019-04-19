@@ -9,6 +9,7 @@ export default {
     plugins: [
         // Compile TypeScript files
         typescript({
+            exclude: ['**/__tests__/*.ts'],
             tsconfigOverride: {
                 compilerOptions: {
                     target: "es5",

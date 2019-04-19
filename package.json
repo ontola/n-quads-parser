@@ -8,6 +8,8 @@
   "sideEffects": false,
   "scripts": {
     "build": "rollup -c && rollup -c --config rollup.config.umd.js",
+    "prebuild": "rm -rf dist/*",
+    "prepublish": "npm run build",
     "test": "jest"
   },
   "repository": {

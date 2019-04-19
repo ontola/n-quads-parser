@@ -9,6 +9,7 @@ export default {
     plugins: [
         // Compile TypeScript files
         typescript({
+            exclude: ['**/__tests__/*.ts'],
             typescript: require("typescript"),
         }),
         // Allow bundling cjs modules (unlike webpack, rollup doesn't understand cjs)
