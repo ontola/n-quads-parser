@@ -140,6 +140,36 @@ describe("index", () => {
                 }
                 expect(stmt[OIndex]).toEqual(new Literal("test", 'nl'));
             });
+
+            it("handles windows newlines", () => {
+                const { parser } = getParser();
+                const input = '<http://example.com/> <http://example.com/p> "test\\r\\ntest2" <http://example.com/g> .';
+
+                const result = parser.parseString(input);
+
+                expect(result).toHaveLength(1);
+                const stmt = result[0];
+                expect(stmt).toBeDefined();
+                if (!stmt) {
+                    return;
+                }
+                expect(stmt[OIndex]).toEqual(new Literal("test\ntest2"));
+            });
+
+            it("handles unix newlines", () => {
+                const { parser } = getParser();
+                const input = '<http://example.com/> <http://example.com/p> "test\\ntest2" <http://example.com/g> .';
+
+                const result = parser.parseString(input);
+
+                expect(result).toHaveLength(1);
+                const stmt = result[0];
+                expect(stmt).toBeDefined();
+                if (!stmt) {
+                    return;
+                }
+                expect(stmt[OIndex]).toEqual(new Literal("test\ntest2"));
+            });
         });
     });
 });

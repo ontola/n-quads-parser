@@ -63,7 +63,7 @@ export class NQuadsParser {
     this.ltOpeningTokenOffset = this.ltOpeningToken.length;
     this.ltQuoteUnescape = /\\"/g;
     this.ltQuoteReplaceValue = '"';
-    this.ltWhitespaceReplace = /\\r\\n/g;
+    this.ltWhitespaceReplace = /(\\r)?\\n/g;
     this.ltNewline = '\n';
     this.lgOpeningToken = '@';
     this.lgOpeningTokenOffset = this.lgOpeningToken.length;
