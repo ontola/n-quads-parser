@@ -1,10 +1,27 @@
-import { IndexedFormula, Literal } from "rdflib";
+import "./useFactory";
 
-import { NQuadsParser, OIndex } from '../index';
+import rdf, {
+    LowLevelStore,
+    NamedNode,
+    Node,
+    Quad,
+    QuadPosition,
+    SomeTerm,
+} from "@ontologies/core";
+
+import { NQuadsParser } from '../index';
 
 const getParser = () => {
-    const store = new IndexedFormula();
-    const parser = new NQuadsParser(store);
+    const store = {
+        rdfFactory: rdf,
+
+        quads: [] as Quad[],
+
+        add(s: Node, p: NamedNode, o: SomeTerm, g: Node) {
+            this.quads.push(rdf.quad(s, p, o, g));
+        }
+    };
+    const parser = new NQuadsParser(store as unknown as LowLevelStore);
 
     return {  parser, store };
 };
@@ -16,6 +33,21 @@ describe("index", () => {
 
     describe("triples", () => {
         describe("literals", () => {
+            it ("parses canonical booleans", () => {
+                const { parser } = getParser();
+                const input = '<http://example.com/> <http://example.com/p> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .';
+
+                const result = parser.parseString(input);
+
+                expect(result).toHaveLength(1);
+                const stmt = result[0];
+                expect(stmt).toBeDefined();
+                if (!stmt) {
+                    return;
+                }
+                expect(stmt[QuadPosition.object]).toEqual(rdf.literal(true));
+            });
+
             it ("parses booleans", () => {
                 const { parser } = getParser();
                 const input = '<http://example.com/> <http://example.com/p> "1"^^<http://www.w3.org/2001/XMLSchema#boolean> .';
@@ -28,7 +60,7 @@ describe("index", () => {
                 if (!stmt) {
                     return;
                 }
-                expect(stmt[OIndex]).toEqual(Literal.fromBoolean(true));
+                expect(stmt[QuadPosition.object]).toEqual(rdf.literal(true));
             });
 
             it ("parses numbers", () => {
@@ -43,7 +75,7 @@ describe("index", () => {
                 if (!stmt) {
                     return;
                 }
-                expect(stmt[OIndex]).toEqual(Literal.fromNumber(4));
+                expect(stmt[QuadPosition.object]).toEqual(rdf.literal(4));
             });
 
             it ("parses strings", () => {
@@ -58,7 +90,7 @@ describe("index", () => {
                 if (!stmt) {
                     return;
                 }
-                expect(stmt[OIndex]).toEqual(new Literal("test"));
+                expect(stmt[QuadPosition.object]).toEqual(rdf.literal("test"));
             });
 
             it ("parses language tags", () => {
@@ -73,7 +105,7 @@ describe("index", () => {
                 if (!stmt) {
                     return;
                 }
-                expect(stmt[OIndex]).toEqual(new Literal("test", 'nl'));
+                expect(stmt[QuadPosition.object]).toEqual(rdf.literal("test", 'nl'));
             });
         });
     });
@@ -93,7 +125,7 @@ describe("index", () => {
                 if (!stmt) {
                     return;
                 }
-                expect(stmt[OIndex]).toEqual(Literal.fromBoolean(true));
+                expect(stmt[QuadPosition.object]).toEqual(rdf.literal(true));
             });
 
             it ("parses numbers", () => {
@@ -108,7 +140,7 @@ describe("index", () => {
                 if (!stmt) {
                     return;
                 }
-                expect(stmt[OIndex]).toEqual(Literal.fromNumber(4));
+                expect(stmt[QuadPosition.object]).toEqual(rdf.literal(4));
             });
 
             it ("parses strings", () => {
@@ -123,7 +155,7 @@ describe("index", () => {
                 if (!stmt) {
                     return;
                 }
-                expect(stmt[OIndex]).toEqual(new Literal("test"));
+                expect(stmt[QuadPosition.object]).toEqual(rdf.literal("test"));
             });
 
             it ("parses language tags", () => {
@@ -138,7 +170,7 @@ describe("index", () => {
                 if (!stmt) {
                     return;
                 }
-                expect(stmt[OIndex]).toEqual(new Literal("test", 'nl'));
+                expect(stmt[QuadPosition.object]).toEqual(rdf.literal("test", 'nl'));
             });
 
             it("handles windows newlines", () => {
@@ -153,7 +185,7 @@ describe("index", () => {
                 if (!stmt) {
                     return;
                 }
-                expect(stmt[OIndex]).toEqual(new Literal("test\ntest2"));
+                expect(stmt[QuadPosition.object]).toEqual(rdf.literal("test\ntest2"));
             });
 
             it("handles unix newlines", () => {
@@ -168,7 +200,7 @@ describe("index", () => {
                 if (!stmt) {
                     return;
                 }
-                expect(stmt[OIndex]).toEqual(new Literal("test\ntest2"));
+                expect(stmt[QuadPosition.object]).toEqual(rdf.literal("test\ntest2"));
             });
         });
     });

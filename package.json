@@ -40,12 +40,12 @@
   "devDependencies": {
     "@types/jest": "^24.0.11",
     "jest": "^24.7.1",
-    "rdflib": "npm:link-rdflib@0.19.1-20190124T144209",
-    "rollup": "^1.9.0",
-    "rollup-plugin-commonjs": "^9.3.4",
-    "rollup-plugin-typescript2": "^0.20.1",
+    "rollup": "^1.27.2",
+    "rollup-plugin-commonjs": "^10.1.0",
+    "rollup-plugin-typescript2": "^0.25.2",
     "ts-jest": "^24.0.2",
-    "typescript": "^3.4.1"
+    "@ontologies/core": "^1.7.2",
+    "typescript": "^3.7.2"
   },
   "jest": {
     "preset": "ts-jest",
