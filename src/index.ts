@@ -1,16 +1,8 @@
-import { IndexedFormula, NamedNode } from 'rdflib';
-
-import { Quadruple } from "./types";
-
-export { Quadruple } from './types';
-
-export const SIndex = 0;
-export const PIndex = 1;
-export const OIndex = 2;
-export const GIndex = 3;
+import { DataFactory, LowLevelStore, Quadruple, NamedNode, QuadPosition } from "@ontologies/core";
 
 export class NQuadsParser {
-  public store: IndexedFormula;
+  public store: LowLevelStore;
+  public rdfFactory: DataFactory;
 
   public nnClosingTagError: Error;
   public unexpectedCharError: (identifier: string) => Error;
@@ -40,14 +32,15 @@ export class NQuadsParser {
   public dtSplitPrefix: string;
   public dtSplitPrefixOffset: number;
 
-  constructor(store: IndexedFormula) {
+  constructor(store: LowLevelStore) {
     this.store = store;
+    this.rdfFactory = store.rdfFactory;
 
     this.nnClosingTagError = new Error(`named node without closing angle bracket`);
     this.unexpectedCharError = (identifier) => new Error(`Unexpected character '${identifier}'`);
 
-    this.xsdLangString = store.sym('http://www.w3.org/2001/XMLSchema#langString');
-    this.xsdString = store.sym('http://www.w3.org/2001/XMLSchema#string');
+    this.xsdLangString = this.rdfFactory.namedNode('http://www.w3.org/2001/XMLSchema#langString');
+    this.xsdString = this.rdfFactory.namedNode('http://www.w3.org/2001/XMLSchema#string');
 
     this.nnOpeningToken = '<';
     this.nnOpeningTokenOffset = this.nnOpeningToken.length;
@@ -113,13 +106,13 @@ export class NQuadsParser {
               throw this.nnClosingTagError;
             }
 
-            subject = this.store.sym(cleaned.substring(this.nnOpeningTokenOffset, rightBoundary));
+            subject = this.rdfFactory.namedNode(cleaned.substring(this.nnOpeningTokenOffset, rightBoundary));
             leftBoundary = rightBoundary + this.nnClosingPostfixOffset;
             break;
 
           case this.bnOpeningToken:
             rightBoundary = cleaned.indexOf(this.bnClosingToken);
-            subject = this.store.bnode(cleaned.substring(this.bnOpeningPrefixOffset, rightBoundary));
+            subject = this.rdfFactory.blankNode(cleaned.substring(this.bnOpeningPrefixOffset, rightBoundary));
             leftBoundary = rightBoundary + this.bnClosingTokenOffset;
             break;
 
@@ -138,7 +131,7 @@ export class NQuadsParser {
         }
 
         leftBoundary = cleaned.indexOf(this.nnOpeningToken, leftBoundary) + this.nnOpeningTokenOffset;
-        predicate = this.store.sym(cleaned.substring(leftBoundary, rightBoundary));
+        predicate = this.rdfFactory.namedNode(cleaned.substring(leftBoundary, rightBoundary));
         leftBoundary = rightBoundary + this.nnClosingPostfixOffset;
 
         /*
@@ -156,7 +149,7 @@ export class NQuadsParser {
               throw this.nnClosingTagError;
             }
 
-            object = this.store.sym(cleaned.substring(leftBoundary, rightBoundary));
+            object = this.rdfFactory.namedNode(cleaned.substring(leftBoundary, rightBoundary));
             break;
           case this.bnOpeningToken:
             leftBoundary = cleaned.indexOf(this.bnOpeningPrefix, leftBoundary) + this.bnOpeningPrefixOffset;
@@ -165,7 +158,7 @@ export class NQuadsParser {
             if (rightBoundary === -1) {
               rightBoundary = Infinity
             }
-            object = this.store.bnode(cleaned.substring(leftBoundary, rightBoundary));
+            object = this.rdfFactory.blankNode(cleaned.substring(leftBoundary, rightBoundary));
             break;
           case '"':
             leftBoundary = leftBoundary + this.ltOpeningTokenOffset;
@@ -177,7 +170,7 @@ export class NQuadsParser {
             if (dtOrLgBoundary >= 0) {
               // Typed literal
               rightBoundary = cleaned.indexOf(this.nnClosingToken, dtOrLgBoundary);
-              datatype = this.store.sym(cleaned.substring(dtOrLgBoundary + this.dtSplitPrefixOffset, rightBoundary));
+              datatype = this.rdfFactory.namedNode(cleaned.substring(dtOrLgBoundary + this.dtSplitPrefixOffset, rightBoundary));
               leftBoundary = rightBoundary
             } else {
               dtOrLgBoundary = cleaned.indexOf(this.lgOpeningToken, leftBoundary);
@@ -192,10 +185,9 @@ export class NQuadsParser {
                 datatype = this.xsdString;
               }
             }
-            object = this.store.literal(
+            object = this.rdfFactory.literal(
               object.replace(this.ltQuoteUnescape, this.ltQuoteReplaceValue),
-              lang,
-              datatype
+              lang || datatype
             );
             break;
           default:
@@ -207,8 +199,8 @@ export class NQuadsParser {
          */
         leftBoundary = cleaned.indexOf(this.nnOpeningToken, leftBoundary) + this.nnOpeningTokenOffset;
         graph = leftBoundary - this.nnOpeningTokenOffset >= 0
-          ? this.store.sym(cleaned.substring(leftBoundary, cleaned.indexOf(this.nnClosingPostfix, leftBoundary)))
-          : this.store.defaultGraphIRI;
+          ? this.rdfFactory.namedNode(cleaned.substring(leftBoundary, cleaned.indexOf(this.nnClosingPostfix, leftBoundary)))
+          : this.rdfFactory.defaultGraph();
 
         quads[i] = [subject, predicate, object, graph];
       } catch(e) {
@@ -224,7 +216,12 @@ export class NQuadsParser {
     for (let i = 0, len = quads.length; i < len; i++) {
       q = quads[i];
       if (q) {
-        this.store.add(q[SIndex], q[PIndex], q[OIndex], q[GIndex]);
+        this.store.add(
+          q[QuadPosition.subject],
+          q[QuadPosition.predicate],
+          q[QuadPosition.object],
+          q[QuadPosition.graph],
+        );
       }
     }
   }
