@@ -14,7 +14,9 @@
       [
         "@pika/plugin-wasm-assemblyscript"
       ],
-      [ "@pika/plugin-wasm-bindings" ],
+      [
+        "@pika/plugin-wasm-bindings"
+      ],
       [
         "@pika/plugin-build-node"
       ],
@@ -24,7 +26,7 @@
     ]
   },
   "name": "n-quads-parser",
-  "version": "2.0.3",
+  "version": "2.0.3-wasm.0",
   "description": "Simple, fast, n-quads and n-triples parser",
   "main": "dist/n-quads-parser.umd.js",
   "module": "dist/n-quads-parser.es6.js",
@@ -34,7 +36,8 @@
     "build": "pika build",
     "prebuild": "rm -rf dist/*",
     "prepublish": "npm run build",
-    "test": "jest"
+    "test": "jest",
+    "version": "npm run build"
   },
   "repository": {
     "type": "git",
