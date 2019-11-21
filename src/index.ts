@@ -1,4 +1,10 @@
-import { DataFactory, LowLevelStore, Quadruple, NamedNode, QuadPosition } from "@ontologies/core";
+import {
+  DataFactory,
+  LowLevelStore,
+  Quadruple,
+  QuadPosition,
+  Term,
+} from "./types";
 
 export class NQuadsParser {
   public store: LowLevelStore;
@@ -7,30 +13,34 @@ export class NQuadsParser {
   public nnClosingTagError: Error;
   public unexpectedCharError: (identifier: string) => Error;
 
-  public xsdLangString: NamedNode;
-  public xsdString: NamedNode;
+  public xsdLangString: Term;
+  public xsdString: Term;
 
+  public commentCharCode: i32;
   public nnOpeningToken: string;
-  public nnOpeningTokenOffset: number;
+  public nnOpeningTokenCharCode: i32;
+  public nnOpeningTokenOffset: i8;
   public nnClosingToken: string;
   public nnClosingPostfix: string;
-  public nnClosingPostfixOffset: number;
+  public nnClosingPostfixOffset: i8;
   public bnOpeningToken: string;
+  public bnOpeningTokenCharCode: i32;
   public bnOpeningPrefix: string;
-  public bnOpeningPrefixOffset: number;
+  public bnOpeningPrefixOffset: i8;
   public bnClosingToken: string;
-  public bnClosingTokenOffset: number;
+  public bnClosingTokenOffset: i8;
   public ltOpeningToken: string;
-  public ltOpeningTokenOffset: number;
+  public ltOpeningTokenCharCode: i32;
+  public ltOpeningTokenOffset: i8;
   public ltQuoteReplaceValue: string;
-  public ltQuoteUnescape: RegExp;
-  public ltWhitespaceReplace: RegExp;
-  public ltNewline: string;
+  public ltQuoteUnescape: string;
+  public ltWhitespaceRemove: string;
+  public emptyString: string;
   public lgOpeningToken: string;
-  public lgOpeningTokenOffset: number;
+  public lgOpeningTokenOffset: i8;
   public lgClosingToken: string;
   public dtSplitPrefix: string;
-  public dtSplitPrefixOffset: number;
+  public dtSplitPrefixOffset: i8;
 
   constructor(store: LowLevelStore) {
     this.store = store;
@@ -42,177 +52,184 @@ export class NQuadsParser {
     this.xsdLangString = this.rdfFactory.namedNode('http://www.w3.org/2001/XMLSchema#langString');
     this.xsdString = this.rdfFactory.namedNode('http://www.w3.org/2001/XMLSchema#string');
 
+    this.commentCharCode = '#'.charCodeAt(0);
     this.nnOpeningToken = '<';
-    this.nnOpeningTokenOffset = this.nnOpeningToken.length;
+    this.nnOpeningTokenCharCode = this.nnOpeningToken.charCodeAt(0);
+    this.nnOpeningTokenOffset = i8(this.nnOpeningToken.length);
     this.nnClosingToken = '>';
     this.nnClosingPostfix = '> ';
-    this.nnClosingPostfixOffset = this.nnClosingPostfix.length;
+    this.nnClosingPostfixOffset = i8(this.nnClosingPostfix.length);
     this.bnOpeningToken = '_';
+    this.bnOpeningTokenCharCode = this.bnOpeningToken.charCodeAt(0);
     this.bnOpeningPrefix = '_:';
-    this.bnOpeningPrefixOffset = this.bnOpeningPrefix.length;
+    this.bnOpeningPrefixOffset = i8(this.bnOpeningPrefix.length);
     this.bnClosingToken = ' ';
-    this.bnClosingTokenOffset = this.bnClosingToken.length;
+    this.bnClosingTokenOffset = i8(this.bnClosingToken.length);
     this.ltOpeningToken = '"';
-    this.ltOpeningTokenOffset = this.ltOpeningToken.length;
-    this.ltQuoteUnescape = /\\"/g;
+    this.ltOpeningTokenCharCode = this.ltOpeningToken.charCodeAt(0);
+    this.ltOpeningTokenOffset = i8(this.ltOpeningToken.length);
+    this.ltQuoteUnescape = '\\"';
     this.ltQuoteReplaceValue = '"';
-    this.ltWhitespaceReplace = /(\\r)?\\n/g;
-    this.ltNewline = '\n';
+    this.ltWhitespaceRemove = '\r';
+    this.emptyString = '';
     this.lgOpeningToken = '@';
-    this.lgOpeningTokenOffset = this.lgOpeningToken.length;
+    this.lgOpeningTokenOffset = i8(this.lgOpeningToken.length);
     this.lgClosingToken = ' ';
     this.dtSplitPrefix = '"^^<';
-    this.dtSplitPrefixOffset = this.dtSplitPrefix.length;
+    this.dtSplitPrefixOffset = i8(this.dtSplitPrefix.length);
   }
 
-  loadBuf(str: string) {
+  loadBuf(str: string): void {
     this.addArr(this.parseString(str));
   }
 
-  parseString(str: string): Array<Quadruple|void> {
+  parseString(str: string): Array<Quadruple> {
     if (!str || str.length === 0) {
       return [];
     }
 
     const rawStatements = str.split('\n');
-    let i, len = rawStatements.length;
-    const quads = new Array(len);
+    let i: i32, len = rawStatements.length;
+    const quads = new Array<Quadruple>(len);
 
-    let cleaned, rightBoundary, leftBoundary;
-    let subject, predicate, object, graph;
-    let dtOrLgBoundary, lang, datatype;
+    let cleaned: string, rightBoundary: i32, leftBoundary: i32;
+    let subject: Term;
+    let predicate: Term;
+    let object: Term;
+    let objectVal: string;
+    let graph: Term;
+    let dtOrLgBoundary: i32;
+    let lang: string = "";
+    let datatype: Term;
 
     for (i = 0; i < len; i++) {
-      try {
-        cleaned = rawStatements[i].trim();
-        if (cleaned.length === 0) {
-          continue
-        }
-
-        rightBoundary = -1;
-        leftBoundary = -1;
-
-        /*
-         * Parse the subject
-         */
-        switch (cleaned.charAt(0)) {
-          case '#':
-            continue;
-
-          case this.nnOpeningToken:
-            rightBoundary = cleaned.indexOf(this.nnClosingPostfix);
-
-            if (rightBoundary === -1) {
-              throw this.nnClosingTagError;
-            }
-
-            subject = this.rdfFactory.namedNode(cleaned.substring(this.nnOpeningTokenOffset, rightBoundary));
-            leftBoundary = rightBoundary + this.nnClosingPostfixOffset;
-            break;
-
-          case this.bnOpeningToken:
-            rightBoundary = cleaned.indexOf(this.bnClosingToken);
-            subject = this.rdfFactory.blankNode(cleaned.substring(this.bnOpeningPrefixOffset, rightBoundary));
-            leftBoundary = rightBoundary + this.bnClosingTokenOffset;
-            break;
-
-          default:
-            throw this.unexpectedCharError(cleaned.charAt(0));
-        }
-
-        /*
-         * Parse the predicate
-         */
-        // We currently assume blank nodes can't be predicates
-        rightBoundary = cleaned.indexOf(this.nnClosingPostfix, leftBoundary);
-
-        if (rightBoundary === -1) {
-          throw this.nnClosingTagError;
-        }
-
-        leftBoundary = cleaned.indexOf(this.nnOpeningToken, leftBoundary) + this.nnOpeningTokenOffset;
-        predicate = this.rdfFactory.namedNode(cleaned.substring(leftBoundary, rightBoundary));
-        leftBoundary = rightBoundary + this.nnClosingPostfixOffset;
-
-        /*
-         * Parse the object
-         */
-        dtOrLgBoundary = -1;
-
-        switch (cleaned.charAt(leftBoundary)) {
-          case this.nnOpeningToken:
-            leftBoundary = leftBoundary + this.nnOpeningTokenOffset;
-            // When parsing ntriples, the space of the nnClosingPostfix might not exist, so it can't be used
-            rightBoundary = cleaned.indexOf(this.nnClosingToken, leftBoundary);
-
-            if (rightBoundary === -1) {
-              throw this.nnClosingTagError;
-            }
-
-            object = this.rdfFactory.namedNode(cleaned.substring(leftBoundary, rightBoundary));
-            break;
-          case this.bnOpeningToken:
-            leftBoundary = cleaned.indexOf(this.bnOpeningPrefix, leftBoundary) + this.bnOpeningPrefixOffset;
-            rightBoundary = cleaned.indexOf(this.bnClosingToken, leftBoundary);
-            // Doesn't contain a comment, nor is a quad, so the bn id is followed by the newline
-            if (rightBoundary === -1) {
-              rightBoundary = Infinity
-            }
-            object = this.rdfFactory.blankNode(cleaned.substring(leftBoundary, rightBoundary));
-            break;
-          case '"':
-            leftBoundary = leftBoundary + this.ltOpeningTokenOffset;
-            object = cleaned
-              .substring(leftBoundary, cleaned.lastIndexOf(this.ltOpeningToken))
-              .replace(this.ltWhitespaceReplace, this.ltNewline);
-            leftBoundary += object.length;
-            dtOrLgBoundary = cleaned.indexOf(this.dtSplitPrefix, leftBoundary);
-            if (dtOrLgBoundary >= 0) {
-              // Typed literal
-              rightBoundary = cleaned.indexOf(this.nnClosingToken, dtOrLgBoundary);
-              datatype = this.rdfFactory.namedNode(cleaned.substring(dtOrLgBoundary + this.dtSplitPrefixOffset, rightBoundary));
-              leftBoundary = rightBoundary
-            } else {
-              dtOrLgBoundary = cleaned.indexOf(this.lgOpeningToken, leftBoundary);
-              if (dtOrLgBoundary >= 0) {
-                lang = cleaned.substring(
-                    dtOrLgBoundary + this.lgOpeningTokenOffset,
-                    cleaned.indexOf(this.lgClosingToken, dtOrLgBoundary + this.lgOpeningTokenOffset)
-                );
-                datatype = this.xsdLangString;
-              } else {
-                // Implicit literals are strings
-                datatype = this.xsdString;
-              }
-            }
-            object = this.rdfFactory.literal(
-              object.replace(this.ltQuoteUnescape, this.ltQuoteReplaceValue),
-              lang || datatype
-            );
-            break;
-          default:
-            throw this.unexpectedCharError(cleaned.charAt(leftBoundary));
-        }
-
-        /*
-         * Parse the graph, if any
-         */
-        leftBoundary = cleaned.indexOf(this.nnOpeningToken, leftBoundary) + this.nnOpeningTokenOffset;
-        graph = leftBoundary - this.nnOpeningTokenOffset >= 0
-          ? this.rdfFactory.namedNode(cleaned.substring(leftBoundary, cleaned.indexOf(this.nnClosingPostfix, leftBoundary)))
-          : this.rdfFactory.defaultGraph();
-
-        quads[i] = [subject, predicate, object, graph];
-      } catch(e) {
-        console.error(e, rawStatements[i]);
+      cleaned = rawStatements[i].trim();
+      if (cleaned.length === 0) {
+        continue
       }
+
+      rightBoundary = -1;
+      leftBoundary = -1;
+
+      /*
+       * Parse the subject
+       */
+      switch (cleaned.charCodeAt(0)) {
+        case this.commentCharCode:
+          continue;
+
+        case this.nnOpeningTokenCharCode:
+          rightBoundary = cleaned.indexOf(this.nnClosingPostfix);
+
+          if (rightBoundary === -1) {
+            throw this.nnClosingTagError;
+          }
+
+          subject = this.rdfFactory.namedNode(cleaned.substring(this.nnOpeningTokenOffset, rightBoundary));
+          leftBoundary = rightBoundary + this.nnClosingPostfixOffset;
+          break;
+
+        case this.bnOpeningTokenCharCode:
+          rightBoundary = cleaned.indexOf(this.bnClosingToken);
+          subject = this.rdfFactory.blankNode(cleaned.substring(this.bnOpeningPrefixOffset, rightBoundary));
+          leftBoundary = rightBoundary + this.bnClosingTokenOffset;
+          break;
+
+        default:
+          throw this.unexpectedCharError(cleaned.charAt(0));
+      }
+
+      /*
+       * Parse the predicate
+       */
+      // We currently assume blank nodes can't be predicates
+      rightBoundary = cleaned.indexOf(this.nnClosingPostfix, leftBoundary);
+
+      if (rightBoundary === -1) {
+        throw this.nnClosingTagError;
+      }
+
+      leftBoundary = cleaned.indexOf(this.nnOpeningToken, leftBoundary) + this.nnOpeningTokenOffset;
+      predicate = this.rdfFactory.namedNode(cleaned.substring(leftBoundary, rightBoundary));
+      leftBoundary = rightBoundary + this.nnClosingPostfixOffset;
+
+      /*
+       * Parse the object
+       */
+      dtOrLgBoundary = -1;
+
+      switch (cleaned.charCodeAt(leftBoundary)) {
+        case this.nnOpeningTokenCharCode:
+          leftBoundary = leftBoundary + this.nnOpeningTokenOffset;
+          // When parsing ntriples, the space of the nnClosingPostfix might not exist, so it can't be used
+          rightBoundary = cleaned.indexOf(this.nnClosingToken, leftBoundary);
+
+          if (rightBoundary === -1) {
+            throw this.nnClosingTagError;
+          }
+
+          object = this.rdfFactory.namedNode(cleaned.substring(leftBoundary, rightBoundary));
+          break;
+        case this.bnOpeningTokenCharCode:
+          leftBoundary = cleaned.indexOf(this.bnOpeningPrefix, leftBoundary) + this.bnOpeningPrefixOffset;
+          rightBoundary = cleaned.indexOf(this.bnClosingToken, leftBoundary);
+          // Doesn't contain a comment, nor is a quad, so the bn id is followed by the newline
+          if (rightBoundary === -1) {
+            rightBoundary = i32(Number.MAX_VALUE);
+          }
+          object = this.rdfFactory.blankNode(cleaned.substring(leftBoundary, rightBoundary));
+          break;
+        case this.ltOpeningTokenCharCode:
+          leftBoundary = leftBoundary + this.ltOpeningTokenOffset;
+          objectVal = cleaned
+            .substring(leftBoundary, cleaned.lastIndexOf(this.ltOpeningToken))
+            .replaceAll(this.ltWhitespaceRemove, this.emptyString);
+          leftBoundary += objectVal.length;
+          dtOrLgBoundary = cleaned.indexOf(this.dtSplitPrefix, leftBoundary);
+          if (dtOrLgBoundary >= 0) {
+            // Typed literal
+            rightBoundary = cleaned.indexOf(this.nnClosingToken, dtOrLgBoundary);
+            datatype = this.rdfFactory.namedNode(cleaned.substring(dtOrLgBoundary + this.dtSplitPrefixOffset, rightBoundary));
+            leftBoundary = rightBoundary
+          } else {
+            dtOrLgBoundary = cleaned.indexOf(this.lgOpeningToken, leftBoundary);
+            if (dtOrLgBoundary >= 0) {
+              lang = cleaned.substring(
+                  dtOrLgBoundary + this.lgOpeningTokenOffset,
+                  cleaned.indexOf(this.lgClosingToken, dtOrLgBoundary + this.lgOpeningTokenOffset)
+              );
+              datatype = this.xsdLangString;
+            } else {
+              // Implicit literals are strings
+              datatype = this.xsdString;
+            }
+          }
+          object = this.rdfFactory.literal(
+            objectVal.replaceAll(this.ltQuoteUnescape, this.ltQuoteReplaceValue),
+            datatype,
+            lang
+          );
+          break;
+        default:
+          throw this.unexpectedCharError(cleaned.charAt(leftBoundary));
+      }
+
+      /*
+       * Parse the graph, if any
+       */
+      leftBoundary = cleaned.indexOf(this.nnOpeningToken, leftBoundary) + this.nnOpeningTokenOffset;
+      graph = leftBoundary - this.nnOpeningTokenOffset >= 0
+        ? this.rdfFactory.namedNode(cleaned.substring(leftBoundary, cleaned.indexOf(this.nnClosingPostfix, leftBoundary)))
+        : this.rdfFactory.defaultGraph();
+
+      quads[i] = [subject, predicate, object, graph];
     }
 
     return quads;
   }
 
-  addArr(quads: Array<Quadruple|void>): void {
-    let q;
+  addArr(quads: Array<Quadruple>): void {
+    let q: Quadruple;
     for (let i = 0, len = quads.length; i < len; i++) {
       q = quads[i];
       if (q) {

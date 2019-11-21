@@ -1,4 +1,28 @@
 {
+  "@pika/pack": {
+    "pipeline": [
+      [
+        "@pika/plugin-standard-pkg",
+        {
+          "exclude": [
+            "__tests__/**/*",
+            "**/*.css",
+            "**/*.ttl"
+          ]
+        }
+      ],
+      [
+        "@pika/plugin-wasm-assemblyscript"
+      ],
+      [ "@pika/plugin-wasm-bindings" ],
+      [
+        "@pika/plugin-build-node"
+      ],
+      [
+        "@pika/plugin-build-web"
+      ]
+    ]
+  },
   "name": "n-quads-parser",
   "version": "2.0.3",
   "description": "Simple, fast, n-quads and n-triples parser",
@@ -7,7 +31,7 @@
   "types": "dist/index.d.ts",
   "sideEffects": false,
   "scripts": {
-    "build": "rollup -c && rollup -c --config rollup.config.umd.js",
+    "build": "pika build",
     "prebuild": "rm -rf dist/*",
     "prepublish": "npm run build",
     "test": "jest"
@@ -39,7 +63,14 @@
   ],
   "devDependencies": {
     "@ontologies/core": "=1.5.2-strict-20",
+    "@pika/pack": "^0.5.0",
+    "@pika/plugin-build-node": "^0.7.1",
+    "@pika/plugin-build-web": "^0.7.1",
+    "@pika/plugin-standard-pkg": "^0.7.1",
+    "@pika/plugin-wasm-assemblyscript": "^0.7.1",
+    "@pika/plugin-wasm-bindings": "^0.7.1",
     "@types/jest": "^24.0.11",
+    "assemblyscript": "^0.8.1",
     "jest": "^24.7.1",
     "rollup": "^1.27.2",
     "rollup-plugin-commonjs": "^10.1.0",
