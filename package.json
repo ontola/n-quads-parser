@@ -2,15 +2,13 @@
   "name": "n-quads-parser",
   "version": "2.0.3",
   "description": "Simple, fast, n-quads and n-triples parser",
-  "main": "dist/n-quads-parser.umd.js",
-  "module": "dist/n-quads-parser.es6.js",
-  "types": "dist/index.d.ts",
   "sideEffects": false,
   "scripts": {
-    "build": "rollup -c && rollup -c --config rollup.config.umd.js",
+    "build": "pika build",
     "prebuild": "rm -rf dist/*",
     "prepublish": "npm run build",
-    "test": "jest"
+    "test": "jest",
+    "version": "yarn run build"
   },
   "repository": {
     "type": "git",
@@ -33,18 +31,38 @@
     "url": "https://github.com/ontola/n-quads-parser/issues"
   },
   "homepage": "https://github.com/ontola/n-quads-parser#readme",
-  "files": [
-    "dist/*",
-    "package.json"
-  ],
+  "@pika/pack": {
+    "pipeline": [
+      [
+        "@pika/plugin-ts-standard-pkg",
+        {
+          "exclude": [
+            "__tests__/**/*"
+          ]
+        }
+      ],
+      [
+        "@pika/plugin-build-node"
+      ],
+      [
+        "@pika/plugin-build-web"
+      ],
+      [
+        "@pika/plugin-bundle-web"
+      ]
+    ]
+  },
   "devDependencies": {
-    "@types/jest": "^24.0.11",
-    "jest": "^24.7.1",
-    "rollup": "^1.27.2",
-    "rollup-plugin-commonjs": "^10.1.0",
-    "rollup-plugin-typescript2": "^0.25.2",
-    "ts-jest": "^24.0.2",
     "@ontologies/core": "^1.7.2",
+    "@pika/pack": "^0.5.0",
+    "@pika/plugin-build-node": "^0.8.1",
+    "@pika/plugin-build-web": "^0.8.1",
+    "@pika/plugin-bundle-web": "^0.8.1",
+    "@pika/plugin-ts-standard-pkg": "^0.8.1",
+    "@types/jest": "^24.0.23",
+    "jest": "^24.9.0",
+    "np": "^5.1.3",
+    "ts-jest": "^24.2.0",
     "typescript": "^3.7.2"
   },
   "jest": {

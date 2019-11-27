@@ -3,12 +3,12 @@
     "moduleResolution": "node",
     "declaration": true,
     "forceConsistentCasingInFileNames": true,
-    "module": "es6",
+    "module": "esnext",
     "lib": ["esnext"],
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "strict": true,
-    "target": "es6"
+    "target": "es2019"
   }
 }
