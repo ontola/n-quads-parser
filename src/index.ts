@@ -13,7 +13,7 @@ export class NQuadsParser {
   public nnClosingTagError: Error;
   public unexpectedCharError: (identifier: string) => Error;
 
-  public xsdLangString: NamedNode;
+  public rdfLangString: NamedNode;
   public xsdString: NamedNode;
   public xsdBool: NamedNode;
 
@@ -46,7 +46,7 @@ export class NQuadsParser {
     this.nnClosingTagError = new Error(`named node without closing angle bracket`);
     this.unexpectedCharError = (identifier) => new Error(`Unexpected character '${identifier}'`);
 
-    this.xsdLangString = this.rdfFactory.namedNode('http://www.w3.org/2001/XMLSchema#langString');
+    this.rdfLangString = this.rdfFactory.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString');
     this.xsdString = this.rdfFactory.namedNode('http://www.w3.org/2001/XMLSchema#string');
     this.xsdBool = this.rdfFactory.namedNode('http://www.w3.org/2001/XMLSchema#boolean');
 
@@ -192,7 +192,7 @@ export class NQuadsParser {
                     dtOrLgBoundary + this.lgOpeningTokenOffset,
                     cleaned.indexOf(this.lgClosingToken, dtOrLgBoundary + this.lgOpeningTokenOffset)
                 );
-                datatype = this.xsdLangString;
+                datatype = this.rdfLangString;
               } else {
                 // Implicit literals are strings
                 datatype = this.xsdString;
