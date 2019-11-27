@@ -52,8 +52,11 @@
       ]
     ]
   },
+  "dependencies": {
+    "@ontologies/core": ">=2.0.0-1"
+  },
   "devDependencies": {
-    "@ontologies/core": "^1.7.2",
+    "@ontologies/core": "^2.0.0-1",
     "@pika/pack": "^0.5.0",
     "@pika/plugin-build-node": "^0.8.1",
     "@pika/plugin-build-web": "^0.8.1",
@@ -66,6 +69,11 @@
     "typescript": "^3.7.2"
   },
   "jest": {
+    "globals": {
+      "ts-jest": {
+        "tsConfig": "tsconfig.test.json"
+      }
+    },
     "preset": "ts-jest",
     "moduleFileExtensions": [
       "js",

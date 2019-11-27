@@ -1,14 +1,16 @@
 {
   "compilerOptions": {
     "moduleResolution": "node",
-    "declaration": true,
     "forceConsistentCasingInFileNames": true,
     "module": "esnext",
-    "lib": ["esnext"],
+    "lib": ["es2020"],
     "noImplicitReturns": true,
     "noUnusedLocals": true,
     "noUnusedParameters": true,
     "strict": true,
     "target": "es2019"
-  }
+  },
+  "exclude": [
+    "**/__tests__/*"
+  ]
 }

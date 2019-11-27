@@ -1,5 +1,3 @@
-import "./useFactory";
-
 import rdf, {
     LowLevelStore,
     NamedNode,
