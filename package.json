@@ -1,6 +1,6 @@
 {
   "name": "n-quads-parser",
-  "version": "2.0.3",
+  "version": "2.1.0-0",
   "description": "Simple, fast, n-quads and n-triples parser",
   "sideEffects": false,
   "scripts": {
