@@ -1,0 +1,121 @@
+version: 2
+defaults: &defaults
+  docker:
+    - image: circleci/node:13
+  working_directory: ~/n-quads-parser
+
+jobs:
+  build:
+    <<: *defaults
+    steps:
+      - run:
+          name:  Download cc-test-reporter
+          command: |
+            mkdir -p tmp/
+            curl -L https://codeclimate.com/downloads/test-reporter/test-reporter-latest-linux-amd64 > ./tmp/cc-test-reporter
+            chmod +x ./tmp/cc-test-reporter
+      - persist_to_workspace:
+          root: tmp
+          paths:
+            - cc-test-reporter
+
+  build-node-13:
+    <<: *defaults
+    docker:
+      - image: circleci/node:13
+    steps:
+      - checkout
+      - attach_workspace:
+          at: ~/n-quads-parser/tmp
+      - restore_cache:
+          keys:
+            - v1-dependencies-13-{{ checksum "package.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-13-
+
+      - run: yarn install
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-13-{{ checksum "package.json" }}
+      - run: yarn test
+      - run: ./tmp/cc-test-reporter format-coverage -t lcov -o ~/n-quads-parser/tmp/codeclimate.node-13.json coverage/lcov.info
+      - run: yarn build
+      - persist_to_workspace:
+          root: tmp
+          paths:
+            - codeclimate.node-13.json
+
+  build-node-12:
+    <<: *defaults
+    docker:
+      - image: circleci/node:12
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-12-{{ checksum "package.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-12-
+
+      - run: yarn install
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-12-{{ checksum "package.json" }}
+      - run: yarn test
+      - run: yarn build
+
+  build-node-10:
+    <<: *defaults
+    docker:
+      - image: circleci/node:10
+    steps:
+      - checkout
+      - restore_cache:
+          keys:
+            - v1-dependencies-10-{{ checksum "package.json" }}
+            # fallback to using the latest cache if no exact match is found
+            - v1-dependencies-10-
+
+      - run: yarn install
+
+      - save_cache:
+          paths:
+            - node_modules
+          key: v1-dependencies-10-{{ checksum "package.json" }}
+      - run: yarn test
+      - run: yarn build
+
+  upload-coverage:
+    <<: *defaults
+    environment:
+      - CC_TEST_REPORTER_ID: 9001e458dc364c38fea1e748ac8dd2a8d46c52446647314fc63045b85a6a21db
+    steps:
+      - attach_workspace:
+          at: ~/n-quads-parser/tmp
+      - run:
+          name: Upload coverage results to Code Climate
+          command: |
+            ./tmp/cc-test-reporter sum-coverage tmp/codeclimate.*.json -p 1 -o tmp/codeclimate.total.json
+            ./tmp/cc-test-reporter upload-coverage -i tmp/codeclimate.total.json
+
+workflows:
+  version: 2
+  commit:
+    jobs:
+      - build
+      - build-node-13:
+          requires:
+            - build
+      - build-node-12:
+          requires:
+            - build
+      - build-node-10:
+          requires:
+            - build
+      - upload-coverage:
+          requires:
+            - build-node-13
