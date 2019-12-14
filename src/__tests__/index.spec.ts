@@ -29,81 +29,56 @@ describe("index", () => {
         expect(NQuadsParser).toBeDefined();
     });
 
+    const expectOutput = (term: string, result: any, graph = rdf.defaultGraph()) => {
+        const { parser } = getParser();
+
+        const output = parser.parseString(`<http://example.com/> <http://example.com/p> ${term} .`);
+
+        expect(output).toHaveLength(1);
+        const stmt = output[0];
+        expect(stmt).toBeDefined();
+        if (!stmt) {
+            return;
+        }
+        expect(stmt[QuadPosition.object]).toEqual(result);
+        expect(stmt[QuadPosition.graph]).toEqual(graph);
+    };
+
     describe("triples", () => {
         describe("literals", () => {
             it ("parses canonical booleans", () => {
-                const { parser } = getParser();
-                const input = '<http://example.com/> <http://example.com/p> "true"^^<http://www.w3.org/2001/XMLSchema#boolean> .';
-
-                const result = parser.parseString(input);
-
-                expect(result).toHaveLength(1);
-                const stmt = result[0];
-                expect(stmt).toBeDefined();
-                if (!stmt) {
-                    return;
-                }
-                expect(stmt[QuadPosition.object]).toEqual(rdf.literal(true));
+                expectOutput(
+                  '"true"^^<http://www.w3.org/2001/XMLSchema#boolean>',
+                  rdf.literal(true)
+                );
             });
 
             it ("parses booleans", () => {
-                const { parser } = getParser();
-                const input = '<http://example.com/> <http://example.com/p> "1"^^<http://www.w3.org/2001/XMLSchema#boolean> .';
-
-                const result = parser.parseString(input);
-
-                expect(result).toHaveLength(1);
-                const stmt = result[0];
-                expect(stmt).toBeDefined();
-                if (!stmt) {
-                    return;
-                }
-                expect(stmt[QuadPosition.object]).toEqual(rdf.literal(true));
+                expectOutput(
+                  '"1"^^<http://www.w3.org/2001/XMLSchema#boolean>',
+                  rdf.literal(true)
+                );
             });
 
             it ("parses numbers", () => {
-                const { parser } = getParser();
-                const input = '<http://example.com/> <http://example.com/p> "4"^^<http://www.w3.org/2001/XMLSchema#integer> .';
-
-                const result = parser.parseString(input);
-
-                expect(result).toHaveLength(1);
-                const stmt = result[0];
-                expect(stmt).toBeDefined();
-                if (!stmt) {
-                    return;
-                }
-                expect(stmt[QuadPosition.object]).toEqual(rdf.literal(4));
+                expectOutput(
+                  '"4"^^<http://www.w3.org/2001/XMLSchema#integer>',
+                  rdf.literal(4)
+                );
             });
 
             it ("parses strings", () => {
-                const { parser } = getParser();
-                const input = '<http://example.com/> <http://example.com/p> "test" .';
-
-                const result = parser.parseString(input);
-
-                expect(result).toHaveLength(1);
-                const stmt = result[0];
-                expect(stmt).toBeDefined();
-                if (!stmt) {
-                    return;
-                }
-                expect(stmt[QuadPosition.object]).toEqual(rdf.literal("test"));
+                expectOutput(
+                  '"test"',
+                  rdf.literal("test")
+                );
             });
 
             it ("parses language tags", () => {
-                const { parser } = getParser();
-                const input = '<http://example.com/> <http://example.com/p> "test"@nl .';
-
-                const result = parser.parseString(input);
-
-                expect(result).toHaveLength(1);
-                const stmt = result[0];
-                expect(stmt).toBeDefined();
-                if (!stmt) {
-                    return;
-                }
-                expect(stmt[QuadPosition.object]).toEqual(rdf.literal("test", 'nl'));
+                expectOutput(
+                  '"test"@nl',
+                  rdf.literal("test", 'nl')
+                );
             });
         });
     });
@@ -111,94 +86,54 @@ describe("index", () => {
 
     describe("quads", () => {
         describe("literals", () => {
+            const g = rdf.namedNode('http://example.com/g');
+
             it ("parses booleans", () => {
-                const { parser } = getParser();
-                const input = '<http://example.com/> <http://example.com/p> "1"^^<http://www.w3.org/2001/XMLSchema#boolean> <http://example.com/g> .';
-
-                const result = parser.parseString(input);
-
-                expect(result).toHaveLength(1);
-                const stmt = result[0];
-                expect(stmt).toBeDefined();
-                if (!stmt) {
-                    return;
-                }
-                expect(stmt[QuadPosition.object]).toEqual(rdf.literal(true));
+                expectOutput(
+                  `"1"^^<http://www.w3.org/2001/XMLSchema#boolean> <${g.value}>`,
+                  rdf.literal(true),
+                  g
+                );
             });
 
             it ("parses numbers", () => {
-                const { parser } = getParser();
-                const input = '<http://example.com/> <http://example.com/p> "4"^^<http://www.w3.org/2001/XMLSchema#integer> <http://example.com/g> .';
-
-                const result = parser.parseString(input);
-
-                expect(result).toHaveLength(1);
-                const stmt = result[0];
-                expect(stmt).toBeDefined();
-                if (!stmt) {
-                    return;
-                }
-                expect(stmt[QuadPosition.object]).toEqual(rdf.literal(4));
+                expectOutput(
+                  `"4"^^<http://www.w3.org/2001/XMLSchema#integer> <${g.value}>`,
+                  rdf.literal(4),
+                  g
+                );
             });
 
             it ("parses strings", () => {
-                const { parser } = getParser();
-                const input = '<http://example.com/> <http://example.com/p> "test" <http://example.com/g> .';
-
-                const result = parser.parseString(input);
-
-                expect(result).toHaveLength(1);
-                const stmt = result[0];
-                expect(stmt).toBeDefined();
-                if (!stmt) {
-                    return;
-                }
-                expect(stmt[QuadPosition.object]).toEqual(rdf.literal("test"));
+                expectOutput(
+                  `"test" <${g.value}>`,
+                  rdf.literal("test"),
+                  g
+                );
             });
 
             it ("parses language tags", () => {
-                const { parser } = getParser();
-                const input = '<http://example.com/> <http://example.com/p> "test"@nl <http://example.com/g> .';
-
-                const result = parser.parseString(input);
-
-                expect(result).toHaveLength(1);
-                const stmt = result[0];
-                expect(stmt).toBeDefined();
-                if (!stmt) {
-                    return;
-                }
-                expect(stmt[QuadPosition.object]).toEqual(rdf.literal("test", 'nl'));
+                expectOutput(
+                  `"test"@nl <${g.value}>`,
+                  rdf.literal("test", 'nl'),
+                  g
+                );
             });
 
             it("handles windows newlines", () => {
-                const { parser } = getParser();
-                const input = '<http://example.com/> <http://example.com/p> "test\\r\\ntest2" <http://example.com/g> .';
-
-                const result = parser.parseString(input);
-
-                expect(result).toHaveLength(1);
-                const stmt = result[0];
-                expect(stmt).toBeDefined();
-                if (!stmt) {
-                    return;
-                }
-                expect(stmt[QuadPosition.object]).toEqual(rdf.literal("test\ntest2"));
+                expectOutput(
+                  `"test\\r\\ntest2" <${g.value}>`,
+                  rdf.literal("test\ntest2"),
+                  g
+                );
             });
 
             it("handles unix newlines", () => {
-                const { parser } = getParser();
-                const input = '<http://example.com/> <http://example.com/p> "test\\ntest2" <http://example.com/g> .';
-
-                const result = parser.parseString(input);
-
-                expect(result).toHaveLength(1);
-                const stmt = result[0];
-                expect(stmt).toBeDefined();
-                if (!stmt) {
-                    return;
-                }
-                expect(stmt[QuadPosition.object]).toEqual(rdf.literal("test\ntest2"));
+                expectOutput(
+                  `"test\\ntest2" <${g.value}>`,
+                  rdf.literal("test\ntest2"),
+                  g
+                );
             });
         });
     });
