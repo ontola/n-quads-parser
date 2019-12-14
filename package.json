@@ -7,7 +7,7 @@
     "build": "pika build",
     "prebuild": "rm -rf dist/*",
     "prepublish": "npm run build",
-    "test": "jest",
+    "test": "jest --coverage",
     "version": "yarn run build"
   },
   "repository": {

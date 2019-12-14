@@ -10,8 +10,9 @@ export class NQuadsParser {
   public store: LowLevelStore;
   public rdfFactory: DataFactory;
 
-  public nnClosingTagError: Error = new Error(`named node without closing angle bracket`);
+  public nnClosingTagError: () => Error = () => new Error(`named node without closing angle bracket`);
   public unexpectedCharError: (identifier: string) => Error = (identifier) => new Error(`Unexpected character '${identifier}'`);
+  public errorHandler: (error: Error, quad: string) => void;
 
   public rdfLangString: NamedNode;
   public xsdString: NamedNode;
@@ -39,9 +40,10 @@ export class NQuadsParser {
   public readonly dtSplitPrefix: string = '"^^<';
   public readonly dtSplitPrefixOffset: number = this.dtSplitPrefix.length;
 
-  constructor(store: LowLevelStore) {
+  constructor(store: LowLevelStore, errorHandler: (error: Error, quad: string) => void = console.error) {
     this.store = store;
     this.rdfFactory = store.rdfFactory;
+    this.errorHandler = errorHandler;
 
     this.rdfLangString = this.rdfFactory.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString');
     this.xsdString = this.rdfFactory.namedNode('http://www.w3.org/2001/XMLSchema#string');
@@ -86,7 +88,7 @@ export class NQuadsParser {
             rightBoundary = cleaned.indexOf(this.nnClosingPostfix);
 
             if (rightBoundary === -1) {
-              throw this.nnClosingTagError;
+              throw this.nnClosingTagError();
             }
 
             subject = this.rdfFactory.namedNode(cleaned.substring(this.nnOpeningTokenOffset, rightBoundary));
@@ -110,7 +112,7 @@ export class NQuadsParser {
         rightBoundary = cleaned.indexOf(this.nnClosingPostfix, leftBoundary);
 
         if (rightBoundary === -1) {
-          throw this.nnClosingTagError;
+          throw this.nnClosingTagError();
         }
 
         leftBoundary = cleaned.indexOf(this.nnOpeningToken, leftBoundary) + this.nnOpeningTokenOffset;
@@ -129,7 +131,7 @@ export class NQuadsParser {
             rightBoundary = cleaned.indexOf(this.nnClosingToken, leftBoundary);
 
             if (rightBoundary === -1) {
-              throw this.nnClosingTagError;
+              throw this.nnClosingTagError();
             }
 
             object = this.rdfFactory.namedNode(cleaned.substring(leftBoundary, rightBoundary));
@@ -192,7 +194,7 @@ export class NQuadsParser {
 
         quads[i] = [subject, predicate, object, graph];
       } catch(e) {
-        console.error(e, rawStatements[i]);
+        this.errorHandler(e, rawStatements[i]);
       }
     }
 
