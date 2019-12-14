@@ -10,67 +10,42 @@ export class NQuadsParser {
   public store: LowLevelStore;
   public rdfFactory: DataFactory;
 
-  public nnClosingTagError: Error;
-  public unexpectedCharError: (identifier: string) => Error;
+  public nnClosingTagError: Error = new Error(`named node without closing angle bracket`);
+  public unexpectedCharError: (identifier: string) => Error = (identifier) => new Error(`Unexpected character '${identifier}'`);
 
   public rdfLangString: NamedNode;
   public xsdString: NamedNode;
   public xsdBool: NamedNode;
 
-  public nnOpeningToken: string;
-  public nnOpeningTokenOffset: number;
-  public nnClosingToken: string;
-  public nnClosingPostfix: string;
-  public nnClosingPostfixOffset: number;
-  public bnOpeningToken: string;
-  public bnOpeningPrefix: string;
-  public bnOpeningPrefixOffset: number;
-  public bnClosingToken: string;
-  public bnClosingTokenOffset: number;
-  public ltOpeningToken: string;
-  public ltOpeningTokenOffset: number;
-  public ltQuoteReplaceValue: string;
-  public ltQuoteUnescape: RegExp;
-  public ltWhitespaceReplace: RegExp;
-  public ltNewline: string;
-  public lgOpeningToken: string;
-  public lgOpeningTokenOffset: number;
-  public lgClosingToken: string;
-  public dtSplitPrefix: string;
-  public dtSplitPrefixOffset: number;
+  public readonly nnOpeningToken: string = '<';
+  public readonly nnOpeningTokenOffset: number = this.nnOpeningToken.length;
+  public readonly nnClosingToken: string = '>';
+  public readonly nnClosingPostfix: string = '> ';
+  public readonly nnClosingPostfixOffset: number = this.nnClosingPostfix.length;
+  public readonly bnOpeningToken: string = '_';
+  public readonly bnOpeningPrefix: string = '_:';
+  public readonly bnOpeningPrefixOffset: number = this.bnOpeningPrefix.length;
+  public readonly bnClosingToken: string = ' ';
+  public readonly bnClosingTokenOffset: number = this.bnClosingToken.length;
+  public readonly ltOpeningToken: string = '"';
+  public readonly ltOpeningTokenOffset: number = this.ltOpeningToken.length;
+  public readonly ltQuoteReplaceValue: string = '"';
+  public readonly ltQuoteUnescape: RegExp = /\\"/g;
+  public readonly ltWhitespaceReplace: RegExp = /(\\r)?\\n/g;
+  public readonly ltNewline: string = '\n';
+  public readonly lgOpeningToken: string = '@';
+  public readonly lgOpeningTokenOffset: number = this.lgOpeningToken.length;
+  public readonly lgClosingToken: string = ' ';
+  public readonly dtSplitPrefix: string = '"^^<';
+  public readonly dtSplitPrefixOffset: number = this.dtSplitPrefix.length;
 
   constructor(store: LowLevelStore) {
     this.store = store;
     this.rdfFactory = store.rdfFactory;
 
-    this.nnClosingTagError = new Error(`named node without closing angle bracket`);
-    this.unexpectedCharError = (identifier) => new Error(`Unexpected character '${identifier}'`);
-
     this.rdfLangString = this.rdfFactory.namedNode('http://www.w3.org/1999/02/22-rdf-syntax-ns#langString');
     this.xsdString = this.rdfFactory.namedNode('http://www.w3.org/2001/XMLSchema#string');
     this.xsdBool = this.rdfFactory.namedNode('http://www.w3.org/2001/XMLSchema#boolean');
-
-    this.nnOpeningToken = '<';
-    this.nnOpeningTokenOffset = this.nnOpeningToken.length;
-    this.nnClosingToken = '>';
-    this.nnClosingPostfix = '> ';
-    this.nnClosingPostfixOffset = this.nnClosingPostfix.length;
-    this.bnOpeningToken = '_';
-    this.bnOpeningPrefix = '_:';
-    this.bnOpeningPrefixOffset = this.bnOpeningPrefix.length;
-    this.bnClosingToken = ' ';
-    this.bnClosingTokenOffset = this.bnClosingToken.length;
-    this.ltOpeningToken = '"';
-    this.ltOpeningTokenOffset = this.ltOpeningToken.length;
-    this.ltQuoteUnescape = /\\"/g;
-    this.ltQuoteReplaceValue = '"';
-    this.ltWhitespaceReplace = /(\\r)?\\n/g;
-    this.ltNewline = '\n';
-    this.lgOpeningToken = '@';
-    this.lgOpeningTokenOffset = this.lgOpeningToken.length;
-    this.lgClosingToken = ' ';
-    this.dtSplitPrefix = '"^^<';
-    this.dtSplitPrefixOffset = this.dtSplitPrefix.length;
   }
 
   loadBuf(str: string) {
