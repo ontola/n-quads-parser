@@ -30,9 +30,17 @@ export class NQuadsParser {
   public readonly bnClosingTokenOffset: number = this.bnClosingToken.length;
   public readonly ltOpeningToken: string = '"';
   public readonly ltOpeningTokenOffset: number = this.ltOpeningToken.length;
-  public readonly ltQuoteReplaceValue: string = '"';
-  public readonly ltQuoteUnescape: RegExp = /\\"/g;
-  public readonly ltWhitespaceReplace: RegExp = /(\\r)?\\n/g;
+  public readonly ltReservedReplace: RegExp = /\\(.)/g;
+  public readonly ltReservedReplaceFn: (match: string) => string =
+    (match: string): string => {
+      switch (match) {
+        case "\\n": return "\n";
+        case "\\r": return "\r";
+        case "\\\"": return "\"";
+        case "\\\\": return "\\";
+        default: throw new Error(`Unknown token ${match}`);
+      }
+    };
   public readonly ltNewline: string = '\n';
   public readonly lgOpeningToken: string = '@';
   public readonly lgOpeningTokenOffset: number = this.lgOpeningToken.length;
@@ -149,10 +157,9 @@ export class NQuadsParser {
             leftBoundary = leftBoundary + this.ltOpeningTokenOffset;
             object = cleaned
               .substring(leftBoundary, cleaned.lastIndexOf(this.ltOpeningToken))
-              .replace(this.ltWhitespaceReplace, this.ltNewline);
+              .replace(this.ltReservedReplace, this.ltReservedReplaceFn);
             leftBoundary += object.length;
             dtOrLgBoundary = cleaned.indexOf(this.dtSplitPrefix, leftBoundary);
-            object = object.replace(this.ltQuoteUnescape, this.ltQuoteReplaceValue);
 
             if (dtOrLgBoundary >= 0) {
               // Typed literal

@@ -184,15 +184,23 @@ describe("index", () => {
             it("handles windows newlines", () => {
                 expectOutput(
                   `"test\\r\\ntest2" <${g.value}>`,
-                  rdf.literal("test\ntest2"),
+                  rdf.literal("test\r\ntest2"),
                   g
                 );
             });
 
             it("handles unix newlines", () => {
                 expectOutput(
-                  `"test\\ntest2" <${g.value}>`,
+                   '"test\\ntest2" <' + g.value + '>',
                   rdf.literal("test\ntest2"),
+                  g
+                );
+            });
+
+            it("handles realworld newlines", () => {
+                expectOutput(
+                  `"Foobar! \\\"\\\\n\\\"" <${g.value}>`, // \"\\n\" -> "\n"
+                  rdf.literal(`Foobar! "\\n"`),
                   g
                 );
             });
