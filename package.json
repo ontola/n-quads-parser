@@ -53,7 +53,7 @@
     ]
   },
   "dependencies": {
-    "@ontologies/core": ">=2.0.0-2"
+    "@ontologies/core": ">=2.0.0-6"
   },
   "devDependencies": {
     "@ontologies/core": "^2.0.0-6",
