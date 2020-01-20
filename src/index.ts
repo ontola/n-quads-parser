@@ -155,10 +155,11 @@ export class NQuadsParser {
             break;
           case '"':
             leftBoundary = leftBoundary + this.ltOpeningTokenOffset;
+            const objEndIndex = cleaned.lastIndexOf(this.ltOpeningToken);
             object = cleaned
-              .substring(leftBoundary, cleaned.lastIndexOf(this.ltOpeningToken))
+              .substring(leftBoundary, objEndIndex)
               .replace(this.ltReservedReplace, this.ltReservedReplaceFn);
-            leftBoundary += object.length;
+            leftBoundary = objEndIndex;
             dtOrLgBoundary = cleaned.indexOf(this.dtSplitPrefix, leftBoundary);
 
             if (dtOrLgBoundary >= 0) {

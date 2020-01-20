@@ -1,10 +1,10 @@
 import rdf, {
-    LowLevelStore,
-    NamedNode,
-    Node,
-    Quad,
-    QuadPosition,
-    SomeTerm,
+  LowLevelStore,
+  NamedNode,
+  Node,
+  Quad,
+  QuadPosition, Quadruple,
+  SomeTerm,
 } from "@ontologies/core";
 
 import { NQuadsParser } from '../index';
@@ -146,6 +146,22 @@ describe("index", () => {
 
 
     describe("quads", () => {
+        it("parses quad", () => {
+          const q = "<https://example.com/site/activities/119> <https://www.w3.org/ns/activitystreams#summary> \"<a href=\\\"https://example.com/site/u/user\\\" target=\\\"_blank\\\">Douglas Engelbart</a> made a comment on <a href=\\\"https://example.com/site/p/69\\\" target=\\\"_blank\\\">Post 1</a>\" <http://purl.org/link-lib/supplant> .\n"
+          const { parser } = getParser();
+          const [ quad ] = parser.parseString(q) as Quadruple[];
+
+          expect(quad).toBeTruthy();
+          expect(quad[QuadPosition.subject]?.value)
+            .toEqual("https://example.com/site/activities/119");
+          expect(quad[QuadPosition.predicate]?.value)
+            .toEqual("https://www.w3.org/ns/activitystreams#summary");
+          expect(quad[QuadPosition.object]?.value)
+            .toEqual("<a href=\"https://example.com/site/u/user\" target=\"_blank\">Douglas Engelbart</a> made a comment on <a href=\"https://example.com/site/p/69\" target=\"_blank\">Post 1</a>");
+          expect(quad[QuadPosition.graph]?.value)
+            .toEqual("http://purl.org/link-lib/supplant");
+        });
+
         describe("literals", () => {
             const g = rdf.namedNode('http://example.com/g');
 
