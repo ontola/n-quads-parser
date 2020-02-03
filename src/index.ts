@@ -4,6 +4,7 @@ import {
   Quadruple,
   NamedNode,
   QuadPosition,
+  BlankNode,
 } from "@ontologies/core";
 
 export class NQuadsParser {
@@ -70,6 +71,7 @@ export class NQuadsParser {
     const rawStatements = str.split('\n');
     let i, len = rawStatements.length;
     const quads = new Array(len);
+    const blankNodeMap: { [k: string]: BlankNode } = {};
 
     let cleaned, rightBoundary, leftBoundary;
     let subject, predicate, object, graph;
@@ -105,7 +107,12 @@ export class NQuadsParser {
 
           case this.bnOpeningToken:
             rightBoundary = cleaned.indexOf(this.bnClosingToken);
-            subject = this.rdfFactory.blankNode(cleaned.substring(this.bnOpeningPrefixOffset, rightBoundary));
+            subject = cleaned.substring(this.bnOpeningPrefixOffset, rightBoundary);
+            if (blankNodeMap[subject] !== undefined) {
+              subject = blankNodeMap[subject];
+            } else {
+              subject = blankNodeMap[subject] = this.rdfFactory.blankNode();
+            }
             leftBoundary = rightBoundary + this.bnClosingTokenOffset;
             break;
 
@@ -151,7 +158,12 @@ export class NQuadsParser {
             if (rightBoundary === -1) {
               rightBoundary = Infinity
             }
-            object = this.rdfFactory.blankNode(cleaned.substring(leftBoundary, rightBoundary));
+            object = cleaned.substring(leftBoundary, rightBoundary);
+            if (blankNodeMap[object] !== undefined) {
+              object = blankNodeMap[object];
+            } else {
+              object = blankNodeMap[object] = this.rdfFactory.blankNode();
+            }
             break;
           case '"':
             leftBoundary = leftBoundary + this.ltOpeningTokenOffset;

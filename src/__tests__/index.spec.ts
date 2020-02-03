@@ -3,8 +3,10 @@ import rdf, {
   NamedNode,
   Node,
   Quad,
-  QuadPosition, Quadruple,
+  QuadPosition,
+  Quadruple,
   SomeTerm,
+  TermType,
 } from "@ontologies/core";
 
 import { NQuadsParser } from '../index';
@@ -39,13 +41,14 @@ describe("index", () => {
             # Description
             _:bn0 <http://example.com/p> "test" . # Inline comment
             _:bn0 <http://example.com/p2> "1"^^<http://www.w3.org/2001/XMLSchema#integer> .`;
+        const preindex = rdf.bnIndex;
         const { parser, store } = getParser();
         parser.loadBuf(input);
 
         expect(store.quads).toHaveLength(2);
         expect(store.quads).toEqual([
-          rdf.quad(rdf.blankNode("bn0"), rdf.namedNode("http://example.com/p"), rdf.literal("test")),
-          rdf.quad(rdf.blankNode("bn0"), rdf.namedNode("http://example.com/p2"), rdf.literal(1)),
+          rdf.quad(rdf.blankNode(`b${preindex + 1}`), rdf.namedNode("http://example.com/p"), rdf.literal("test")),
+          rdf.quad(rdf.blankNode(`b${preindex + 1}`), rdf.namedNode("http://example.com/p2"), rdf.literal(1)),
         ]);
     });
 
@@ -90,6 +93,29 @@ describe("index", () => {
         expect(stmt[QuadPosition.object]).toEqual(result);
         expect(stmt[QuadPosition.graph]).toEqual(graph);
     };
+
+    describe("blank nodes", () => {
+      it("reassigns blank nodes", () => {
+        const { parser } = getParser();
+        const preindex = rdf.bnIndex;
+        const output = parser.parseString(`_:blankNode <http://example.com/p> "value" .
+            _:blankNode <http://example.com/p2> _:blankNode2 .
+            _:blankNode2 <http://example.com/p> "value" .
+        `) as Quadruple[];
+
+        expect(output[0][0].termType).toEqual(TermType.BlankNode);
+        expect(output[0][0].value).toEqual(`b${preindex + 1}`);
+
+        expect(output[1][0].termType).toEqual(TermType.BlankNode);
+        expect(output[1][0].value).toEqual(`b${preindex + 1}`);
+
+        expect(output[1][2].termType).toEqual(TermType.BlankNode);
+        expect(output[1][2].value).toEqual(`b${preindex + 2}`);
+
+        expect(output[2][0].termType).toEqual(TermType.BlankNode);
+        expect(output[2][0].value).toEqual(`b${preindex + 2}`);
+      });
+    });
 
     describe("triples", () => {
         describe("literals", () => {
