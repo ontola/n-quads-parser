@@ -849,10 +849,10 @@
     "@types/istanbul-reports" "^1.1.1"
     "@types/yargs" "^13.0.0"
 
-"@ontologies/core@>=2.0.0-6":
-  version "2.0.0-6"
-  resolved "https://registry.yarnpkg.com/@ontologies/core/-/core-2.0.0-6.tgz#31e90922eea315578c270bf5122932ea9798b40f"
-  integrity sha512-F9vP76XMM030RqDceIZWCI6DTZ8scfqHKQDiXkw2VZ4jsbKfE74g0goCTOwt74oh/FT09mJMUFvU/eJgsq94XQ==
+"@ontologies/core@>=2.0.0":
+  version "2.0.0"
+  resolved "https://registry.yarnpkg.com/@ontologies/core/-/core-2.0.0.tgz#f2d0ac0882040651e7ad621fa9b075b7f1175b0c"
+  integrity sha512-SSBZTvzOFTytls90A89dpzhoiRnDlLNvLDRuOdT8T60bOlYJlI/mdspYOngEZhTzA8UBcHoxgRqQZZONksAFbw==
   dependencies:
     "@ungap/global-this" "^0.3.1"
 
