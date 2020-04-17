@@ -46,9 +46,6 @@
       ],
       [
         "@pika/plugin-build-web"
-      ],
-      [
-        "@pika/plugin-bundle-web"
       ]
     ]
   },
